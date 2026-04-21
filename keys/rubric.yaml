@@ -1,0 +1,174 @@
+# Rubrik penilaian UTS AI dalam Pendidikan Bahasa Arab (Track Arabic AI Prompt Engineer)
+# Struktur & bobot identik untuk Versi D dan E.
+# Level: "sangat_baik" (85-100), "baik" (70-84), "cukup" (60-69), "kurang" (<60)
+
+meta:
+  mata_kuliah: "Artificial Intelligence dalam Pendidikan Bahasa Arab"
+  durasi_menit: 60
+  total_bobot: 100
+  cpmk:
+    CPMK-1: "Memahami konsep dasar AI & LLM untuk pendidikan bahasa Arab"
+    CPMK-2: "Merancang prompt yang efektif untuk bahan ajar bahasa Arab"
+    CPMK-3: "Mengevaluasi kualitas output AI secara kritis"
+
+fase:
+  fase_1:
+    nama: "Diagnosis AI Output"
+    bobot_total: 30
+  fase_2:
+    nama: "Prompt Redesign & Generate"
+    bobot_total: 40
+  fase_3:
+    nama: "Refleksi Kritis"
+    bobot_total: 30
+
+soal:
+  - id: "1.1"
+    nama: "Identifikasi Masalah Linguistik"
+    fase: "fase_1"
+    bobot: 10
+    cpmk: ["CPMK-1"]
+    tipe: "essay_analisis"
+    min_temuan: 3
+    aspek_dinilai:
+      - "Ketepatan identifikasi masalah (letak/lokasi dalam paket)"
+      - "Penjelasan apa yang salah secara linguistik"
+      - "Penjelasan mengapa menjadi masalah dalam konteks pembelajaran"
+    dimensi_tinjauan:
+      - "Ketepatan kosakata (glosarium: terjemahan, transliterasi)"
+      - "Kealamian kalimat di teks bacaan/dialog"
+      - "Kesesuaian register bahasa (MSA/dialek)"
+      - "Konsistensi bahasa (Indonesia vs Inggris dalam glosarium)"
+    level:
+      sangat_baik: "3+ masalah linguistik akurat dan mendalam (letak + apa + mengapa)"
+      baik: "3 masalah dengan penjelasan cukup jelas"
+      cukup: "1-2 masalah atau penjelasan kurang tepat"
+      kurang: "Tidak mampu mengidentifikasi secara memadai"
+
+  - id: "1.2"
+    nama: "Identifikasi Masalah Pedagogis"
+    fase: "fase_1"
+    bobot: 10
+    cpmk: ["CPMK-1"]
+    tipe: "essay_analisis"
+    min_temuan: 3
+    aspek_dinilai:
+      - "Ketepatan identifikasi komponen yang bermasalah"
+      - "Referensi prinsip pembelajaran bahasa yang dilanggar"
+      - "Penjelasan dampak bagi proses pembelajaran siswa"
+    dimensi_tinjauan:
+      - "Kesesuaian level soal dengan jenjang (MTs / SMA)"
+      - "Keseimbangan LOTS vs HOTS"
+      - "Kesesuaian aktivitas dengan tujuan maharah (istima'/kalam/qira'ah/kitabah)"
+      - "Kualitas scaffolding instruksional"
+    level:
+      sangat_baik: "3+ masalah + referensi prinsip pembelajaran yang tepat"
+      baik: "3 masalah dengan penjelasan cukup"
+      cukup: "1-2 masalah atau tidak tepat"
+      kurang: "Tidak mampu mengidentifikasi"
+
+  - id: "1.3"
+    nama: "Analisis Kelemahan Prompt Asli"
+    fase: "fase_1"
+    bobot: 10
+    cpmk: ["CPMK-2"]
+    tipe: "essay_analisis"
+    dimensi_wajib: ["clarity", "context", "specificity", "constraint"]
+    aspek_dinilai:
+      - "Clarity: kejelasan perintah prompt"
+      - "Context: informasi konteks yang tidak dicantumkan"
+      - "Specificity: kekhususan instruksi"
+      - "Constraint: batasan yang tidak ditetapkan"
+    level:
+      sangat_baik: "4 dimensi dianalisis tajam dengan contoh konkret"
+      baik: "3 dimensi dianalisis dengan penjelasan baik"
+      cukup: "2 dimensi atau penjelasan dangkal"
+      kurang: "Analisis tidak relevan atau sangat minim"
+
+  - id: "2.1"
+    nama: "Pilihan Komponen & Alasan"
+    fase: "fase_2"
+    bobot: 5
+    cpmk: ["CPMK-2"]
+    tipe: "pilihan_plus_justifikasi"
+    pilihan_valid: ["B", "C", "D"]
+    aspek_dinilai:
+      - "Ada pilihan komponen yang jelas (B/C/D)"
+      - "Alasan logis dan terhubung langsung dengan temuan diagnosis Fase 1"
+    level:
+      sangat_baik: "Alasan logis dan berkaitan langsung dengan temuan diagnosis"
+      baik: "Alasan logis namun koneksi ke diagnosis lemah"
+      cukup: "Alasan kurang jelas atau generik"
+      kurang: "Tidak ada alasan / pilihan tidak jelas"
+
+  - id: "2.2"
+    nama: "Kualitas Prompt Versi 1"
+    fase: "fase_2"
+    bobot: 15
+    cpmk: ["CPMK-2"]
+    tipe: "prompt_engineering_plus_output"
+    elemen_wajib:
+      - "role: Persona/Role yang ditetapkan untuk AI"
+      - "konteks: Konteks pembelajaran (jenjang, tingkat kemahiran, tujuan)"
+      - "spesifikasi: Spesifikasi output (format, panjang, kosakata target)"
+      - "teknik: Teknik prompting (zero-shot / few-shot / CoT / role prompting)"
+      - "constraint: Batasan yang ditetapkan"
+    perlu_screenshot: true
+    level:
+      sangat_baik: "Semua 5 elemen (role, konteks, spesifikasi, teknik, constraint) jelas"
+      baik: "3-4 elemen dengan kualitas baik"
+      cukup: "2 elemen atau kualitas rendah"
+      kurang: "Masih mirip prompt asli yang buruk"
+
+  - id: "2.3"
+    nama: "Iterasi Prompt V2 & Argumen Perbandingan"
+    fase: "fase_2"
+    bobot: 20
+    cpmk: ["CPMK-2"]
+    tipe: "prompt_iteration_plus_evaluation"
+    sub_bagian:
+      a: "Evaluasi output V1 (apa yang baik, apa yang perlu diperbaiki)"
+      b: "Prompt V2 dengan tanda perubahan + penjelasan mengapa"
+      c: "Screenshot output AI dari V2"
+      d: "Perbandingan V1 vs V2 berbasis bukti"
+    perlu_screenshot: true
+    level:
+      sangat_baik: "Perbaikan nyata di V2 + argumen perubahan spesifik + perbandingan berbasis bukti"
+      baik: "Perbaikan ada + penjelasan cukup"
+      cukup: "Perbaikan tidak signifikan atau penjelasan lemah"
+      kurang: "Tidak ada iterasi bermakna"
+
+  - id: "3.1"
+    nama: "Refleksi Kritis Tertulis"
+    fase: "fase_3"
+    bobot: 20
+    cpmk: ["CPMK-1", "CPMK-3"]
+    tipe: "essay_refleksi"
+    batas_kata:
+      min: 200
+      max: 300
+    pertanyaan_dijawab:
+      - "Di titik mana AI benar-benar membantu pembuatan materi bahasa Arab?"
+      - "Di titik mana AI gagal atau butuh koreksi manusia?"
+      - "Mengapa mengaudit output AI penting bagi guru bahasa Arab?"
+      - "Satu pelajaran terpenting dari pengalaman ini"
+    level:
+      sangat_baik: "Sangat kritis + nuansed + konkret + menjawab 4 pertanyaan + memenuhi batas kata"
+      baik: "Kritis tapi general + 3-4 pertanyaan dijawab"
+      cukup: "Deskriptif + tidak semua pertanyaan dijawab"
+      kurang: "Dangkal atau di bawah batas kata"
+
+  - id: "3.2"
+    nama: "Pertanyaan Singkat Konseptual"
+    fase: "fase_3"
+    bobot: 10
+    cpmk: ["CPMK-1", "CPMK-2"]
+    tipe: "pertanyaan_konseptual"
+    sub_bagian: 2
+    batas_kalimat_per_sub: "3-4"
+    # Sub-pertanyaan berbeda antara versi D dan E — lihat keys/key_D.md & key_E.md
+    level:
+      sangat_baik: "Kedua konsep dijelaskan akurat dengan contoh relevan"
+      baik: "Penjelasan akurat tapi contoh kurang spesifik"
+      cukup: "Sebagian benar atau tidak lengkap"
+      kurang: "Tidak akurat atau tidak menjawab"
