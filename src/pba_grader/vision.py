@@ -18,6 +18,7 @@ from typing import Any
 
 from groq import Groq
 
+from .groq_client import ThrottledGroqClient
 from .schema import ExtractedImage
 
 log = logging.getLogger(__name__)
@@ -63,8 +64,13 @@ def _encode_image_to_data_url(path: Path) -> str:
 
 
 class VisionGrader:
-    def __init__(self, client: Groq | None = None):
-        self.client = client or Groq()
+    def __init__(self, client: ThrottledGroqClient | Groq | None = None):
+        if isinstance(client, ThrottledGroqClient):
+            self.client = client
+        elif isinstance(client, Groq):
+            self.client = ThrottledGroqClient(client=client)
+        else:
+            self.client = ThrottledGroqClient()
 
     def grade_screenshot(
         self,
@@ -75,7 +81,7 @@ class VisionGrader:
         data_url = _encode_image_to_data_url(img.path)
         prompt = VISION_PROMPT.format(tema=tema, versi_prompt=versi_prompt)
         try:
-            resp = self.client.chat.completions.create(
+            resp = self.client.chat_completion(
                 model=MODEL_VISION,
                 messages=[
                     {

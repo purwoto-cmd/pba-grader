@@ -31,6 +31,7 @@ from typing import Any
 import yaml
 from groq import Groq
 
+from .groq_client import ThrottledGroqClient
 from .schema import Level, SoalAnswer, SoalScore
 
 log = logging.getLogger(__name__)
@@ -138,13 +139,21 @@ class Judge:
         rubric_path: Path,
         key_d_path: Path,
         key_e_path: Path,
-        client: Groq | None = None,
+        client: ThrottledGroqClient | Groq | None = None,
+        *,
+        enable_self_consistency: bool = True,
     ):
         self.rubric = yaml.safe_load(Path(rubric_path).read_text())
         self.soal_by_id = {s["id"]: s for s in self.rubric["soal"]}
         self.key_d = Path(key_d_path).read_text()
         self.key_e = Path(key_e_path).read_text()
-        self.client = client or Groq()
+        if isinstance(client, ThrottledGroqClient):
+            self.client = client
+        elif isinstance(client, Groq):
+            self.client = ThrottledGroqClient(client=client)
+        else:
+            self.client = ThrottledGroqClient()
+        self.enable_self_consistency = enable_self_consistency
 
     # ---- Public API ----
 
@@ -189,7 +198,7 @@ class Judge:
                 )
 
         # --- Pilih model & sampling strategy ---
-        use_self_consistency = bobot >= SELF_CONSISTENCY_MIN_BOBOT
+        use_self_consistency = self.enable_self_consistency and bobot >= SELF_CONSISTENCY_MIN_BOBOT
         model = MODEL_REASONING if use_self_consistency else MODEL_TEXT
         n_samples = 3 if use_self_consistency else 1
 
@@ -323,7 +332,7 @@ class Judge:
         return ""
 
     def _call_judge(self, model: str, user_prompt: str, temperature: float = 0.0) -> str:
-        resp = self.client.chat.completions.create(
+        resp = self.client.chat_completion(
             model=model,
             messages=[
                 {"role": "system", "content": SYSTEM_PROMPT},
