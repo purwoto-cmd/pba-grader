@@ -20,6 +20,7 @@ Wrapper ini:
 
 from __future__ import annotations
 
+import json
 import logging
 import os
 import random
@@ -267,6 +268,48 @@ class ThrottledLLMClient:
             lambda: self.client.chat.completions.create(**kwargs),
             label=label,
         )
+
+
+def normalize_message_content(content: Any) -> str:
+    """Konversi message.content menjadi string yang bisa di-parse downstream.
+
+    Beberapa provider (notably SwiftRouter untuk model tertentu seperti
+    `llama-4-scout`) mengembalikan `message.content` sebagai dict alih-alih str
+    — biasanya karena routing internal mereka memakai function-calling shim.
+
+    Bentuk yang sudah ditemui:
+    - str biasa (Groq, OpenAI, gpt-oss-120b di SwiftRouter): `'{...}'`
+    - dict langsung: `{'is_screenshot_ai': False, 'notes': '...'}`
+    - dict function-call wrap: `{'name': 'output_json',
+                                  'parameters': {'json': {...}},
+                                  'type': 'function'}`
+
+    Helper ini selalu mengembalikan string JSON / teks supaya downstream
+    `json.loads(...)` atau regex extraction tetap kompatibel.
+    """
+    if content is None:
+        return ""
+    if isinstance(content, str):
+        return content
+    if isinstance(content, dict):
+        # Bentuk function-call wrapper SwiftRouter
+        params = content.get("parameters") if isinstance(content.get("parameters"), dict) else None
+        if params and isinstance(params.get("json"), (dict, list)):
+            return json.dumps(params["json"], ensure_ascii=False)
+        # Dict JSON langsung — serialize as-is
+        return json.dumps(content, ensure_ascii=False)
+    if isinstance(content, list):
+        # Beberapa SDK return list of content parts. Concat text parts.
+        parts = []
+        for p in content:
+            if isinstance(p, dict):
+                txt = p.get("text") or p.get("content")
+                if isinstance(txt, str):
+                    parts.append(txt)
+            elif isinstance(p, str):
+                parts.append(p)
+        return "".join(parts)
+    return str(content)
 
 
 # Backward-compat alias agar kode lama (ThrottledGroqClient) masih jalan.

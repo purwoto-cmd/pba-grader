@@ -16,7 +16,7 @@ import os
 from pathlib import Path
 from typing import Any
 
-from .llm_client import ThrottledLLMClient
+from .llm_client import ThrottledLLMClient, normalize_message_content
 from .schema import ExtractedImage
 
 log = logging.getLogger(__name__)
@@ -24,7 +24,7 @@ log = logging.getLogger(__name__)
 _PROVIDER_V = os.getenv("PBA_PROVIDER", "groq").lower()
 _VISION_DEFAULTS = {
     "groq": "meta-llama/llama-4-scout-17b-16e-instruct",
-    "swiftrouter": "meta/llama-3.2-90b-vision-instruct",  # cek di swiftrouter.com/models
+    "swiftrouter": "llama-4-scout",  # $0.08/$0.30 per 1M, 328K context, multimodal
     "openai": "gpt-4o-mini",
 }
 MODEL_VISION = os.getenv(
@@ -105,7 +105,7 @@ class VisionGrader:
         except Exception as exc:  # noqa: BLE001
             log.warning("Vision call gagal untuk %s: %s", img.path.name, exc)
             return None
-        raw = (resp.choices[0].message.content or "").strip()
+        raw = normalize_message_content(resp.choices[0].message.content).strip()
         try:
             import json
             return json.loads(raw)

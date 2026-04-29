@@ -50,11 +50,13 @@ export GROQ_API_KEY="gsk_..."
 ```bash
 export PBA_PROVIDER=swiftrouter
 export SWIFTROUTER_API_KEY="sk-..."
-# Optional override model (lihat https://swiftrouter.com/models):
-# export PBA_MODEL_TEXT="meta/llama-3.3-70b-instruct"
-# export PBA_MODEL_REASONING="openai/gpt-oss-120b"
-# export PBA_MODEL_VISION="meta/llama-3.2-90b-vision-instruct"
+# Default model (sudah optimal untuk rubric grading bilingual):
+# export PBA_MODEL_TEXT="gpt-oss-120b"          # reasoning, $0.04/$0.19 per 1M
+# export PBA_MODEL_REASONING="gpt-oss-120b"
+# export PBA_MODEL_VISION="llama-4-scout"       # vision, $0.08/$0.30 per 1M
 ```
+
+Estimasi biaya batch 66 mahasiswa via SwiftRouter dengan default di atas: ≈ $0.40 (full mode) atau ≈ $0.10 (mode hemat).
 
 ### Opsi 3 — Endpoint OpenAI-compatible custom
 

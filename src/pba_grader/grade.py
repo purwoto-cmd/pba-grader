@@ -30,7 +30,7 @@ from typing import Any
 
 import yaml
 
-from .llm_client import ThrottledLLMClient, make_raw_client
+from .llm_client import ThrottledLLMClient, make_raw_client, normalize_message_content
 from .schema import Level, SoalAnswer, SoalScore
 
 log = logging.getLogger(__name__)
@@ -44,10 +44,10 @@ _DEFAULTS_BY_PROVIDER = {
         "reasoning": "openai/gpt-oss-120b",
     },
     "swiftrouter": {
-        # ID model SwiftRouter — di-override via PBA_MODEL_TEXT/REASONING.
-        # Default ditebak; verifikasi via halaman swiftrouter.com/models.
-        "text": "meta/llama-3.3-70b-instruct",
-        "reasoning": "openai/gpt-oss-120b",
+        # Model ID SwiftRouter (verified dari swiftrouter.com/models, Apr 2026).
+        # gpt-oss-120b: reasoning, $0.04/$0.19 per 1M, 131K context — paling worth it.
+        "text": "gpt-oss-120b",
+        "reasoning": "gpt-oss-120b",
     },
     "openai": {
         "text": "gpt-4o-mini",
@@ -360,7 +360,7 @@ class Judge:
             max_completion_tokens=1200,
             response_format={"type": "json_object"},
         )
-        return resp.choices[0].message.content or ""
+        return normalize_message_content(resp.choices[0].message.content)
 
     @staticmethod
     def _parse_judge_output(raw: str) -> dict[str, Any] | None:

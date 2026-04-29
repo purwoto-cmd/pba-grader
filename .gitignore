@@ -11,6 +11,7 @@ __pycache__/
 input/*.pdf
 output/*
 !output/.gitkeep
+output_*/
 
 # Fixture artefak yang di-generate
 fixtures/*.pdf
