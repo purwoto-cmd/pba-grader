@@ -15,12 +15,10 @@ import logging
 import time
 from pathlib import Path
 
-from groq import Groq
-
 from .detect import detect_identity
 from .grade import Judge
-from .groq_client import ThrottledGroqClient
 from .ingest import ingest_pdf
+from .llm_client import ThrottledLLMClient, make_raw_client
 from .schema import SOAL_IDS, SoalScore, StudentResult
 from .segment import segment_answers
 from .vision import VisionGrader
@@ -196,8 +194,8 @@ def grade_batch(
     feedback_dir = Path(output_dir) / "feedback"
     feedback_dir.mkdir(parents=True, exist_ok=True)
 
-    raw_client = Groq()
-    client = ThrottledGroqClient(
+    raw_client = make_raw_client()
+    client = ThrottledLLMClient(
         client=raw_client,
         min_interval_s=throttle_s,
         max_retries=max_retries,

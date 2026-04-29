@@ -29,16 +29,34 @@ from pathlib import Path
 from typing import Any
 
 import yaml
-from groq import Groq
 
-from .groq_client import ThrottledGroqClient
+from .llm_client import ThrottledLLMClient, make_raw_client
 from .schema import Level, SoalAnswer, SoalScore
 
 log = logging.getLogger(__name__)
 
 # --- Model config ---
-MODEL_TEXT = os.getenv("PBA_MODEL_TEXT", "llama-3.3-70b-versatile")
-MODEL_REASONING = os.getenv("PBA_MODEL_REASONING", "openai/gpt-oss-120b")
+# Default model bergantung provider. Set via env var atau biarkan default Groq.
+_PROVIDER = os.getenv("PBA_PROVIDER", "groq").lower()
+_DEFAULTS_BY_PROVIDER = {
+    "groq": {
+        "text": "llama-3.3-70b-versatile",
+        "reasoning": "openai/gpt-oss-120b",
+    },
+    "swiftrouter": {
+        # ID model SwiftRouter — di-override via PBA_MODEL_TEXT/REASONING.
+        # Default ditebak; verifikasi via halaman swiftrouter.com/models.
+        "text": "meta/llama-3.3-70b-instruct",
+        "reasoning": "openai/gpt-oss-120b",
+    },
+    "openai": {
+        "text": "gpt-4o-mini",
+        "reasoning": "gpt-4o",
+    },
+}
+_DEFAULTS = _DEFAULTS_BY_PROVIDER.get(_PROVIDER, _DEFAULTS_BY_PROVIDER["groq"])
+MODEL_TEXT = os.getenv("PBA_MODEL_TEXT", _DEFAULTS["text"])
+MODEL_REASONING = os.getenv("PBA_MODEL_REASONING", _DEFAULTS["reasoning"])
 
 # Bobot minimal untuk pakai self-consistency (3x sampling)
 SELF_CONSISTENCY_MIN_BOBOT = 15
@@ -139,7 +157,7 @@ class Judge:
         rubric_path: Path,
         key_d_path: Path,
         key_e_path: Path,
-        client: ThrottledGroqClient | Groq | None = None,
+        client: ThrottledLLMClient | Any | None = None,
         *,
         enable_self_consistency: bool = True,
     ):
@@ -147,12 +165,12 @@ class Judge:
         self.soal_by_id = {s["id"]: s for s in self.rubric["soal"]}
         self.key_d = Path(key_d_path).read_text()
         self.key_e = Path(key_e_path).read_text()
-        if isinstance(client, ThrottledGroqClient):
+        if isinstance(client, ThrottledLLMClient):
             self.client = client
-        elif isinstance(client, Groq):
-            self.client = ThrottledGroqClient(client=client)
+        elif client is not None:
+            self.client = ThrottledLLMClient(client=client)
         else:
-            self.client = ThrottledGroqClient()
+            self.client = ThrottledLLMClient()
         self.enable_self_consistency = enable_self_consistency
 
     # ---- Public API ----

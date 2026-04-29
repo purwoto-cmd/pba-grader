@@ -16,14 +16,20 @@ import os
 from pathlib import Path
 from typing import Any
 
-from groq import Groq
-
-from .groq_client import ThrottledGroqClient
+from .llm_client import ThrottledLLMClient
 from .schema import ExtractedImage
 
 log = logging.getLogger(__name__)
 
-MODEL_VISION = os.getenv("PBA_MODEL_VISION", "meta-llama/llama-4-scout-17b-16e-instruct")
+_PROVIDER_V = os.getenv("PBA_PROVIDER", "groq").lower()
+_VISION_DEFAULTS = {
+    "groq": "meta-llama/llama-4-scout-17b-16e-instruct",
+    "swiftrouter": "meta/llama-3.2-90b-vision-instruct",  # cek di swiftrouter.com/models
+    "openai": "gpt-4o-mini",
+}
+MODEL_VISION = os.getenv(
+    "PBA_MODEL_VISION", _VISION_DEFAULTS.get(_PROVIDER_V, _VISION_DEFAULTS["groq"])
+)
 
 VISION_PROMPT = """Anda menilai screenshot output AI chatbot yang dilampirkan mahasiswa \
 di UTS prompt engineering bahasa Arab.
@@ -64,13 +70,13 @@ def _encode_image_to_data_url(path: Path) -> str:
 
 
 class VisionGrader:
-    def __init__(self, client: ThrottledGroqClient | Groq | None = None):
-        if isinstance(client, ThrottledGroqClient):
+    def __init__(self, client: ThrottledLLMClient | Any | None = None):
+        if isinstance(client, ThrottledLLMClient):
             self.client = client
-        elif isinstance(client, Groq):
-            self.client = ThrottledGroqClient(client=client)
+        elif client is not None:
+            self.client = ThrottledLLMClient(client=client)
         else:
-            self.client = ThrottledGroqClient()
+            self.client = ThrottledLLMClient()
 
     def grade_screenshot(
         self,
