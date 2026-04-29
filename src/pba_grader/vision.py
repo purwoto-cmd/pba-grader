@@ -16,13 +16,20 @@ import os
 from pathlib import Path
 from typing import Any
 
-from groq import Groq
-
+from .llm_client import ThrottledLLMClient, normalize_message_content
 from .schema import ExtractedImage
 
 log = logging.getLogger(__name__)
 
-MODEL_VISION = os.getenv("PBA_MODEL_VISION", "meta-llama/llama-4-scout-17b-16e-instruct")
+_PROVIDER_V = os.getenv("PBA_PROVIDER", "groq").lower()
+_VISION_DEFAULTS = {
+    "groq": "meta-llama/llama-4-scout-17b-16e-instruct",
+    "swiftrouter": "llama-4-scout",  # $0.08/$0.30 per 1M, 328K context, multimodal
+    "openai": "gpt-4o-mini",
+}
+MODEL_VISION = os.getenv(
+    "PBA_MODEL_VISION", _VISION_DEFAULTS.get(_PROVIDER_V, _VISION_DEFAULTS["groq"])
+)
 
 VISION_PROMPT = """Anda menilai screenshot output AI chatbot yang dilampirkan mahasiswa \
 di UTS prompt engineering bahasa Arab.
@@ -63,8 +70,13 @@ def _encode_image_to_data_url(path: Path) -> str:
 
 
 class VisionGrader:
-    def __init__(self, client: Groq | None = None):
-        self.client = client or Groq()
+    def __init__(self, client: ThrottledLLMClient | Any | None = None):
+        if isinstance(client, ThrottledLLMClient):
+            self.client = client
+        elif client is not None:
+            self.client = ThrottledLLMClient(client=client)
+        else:
+            self.client = ThrottledLLMClient()
 
     def grade_screenshot(
         self,
@@ -75,7 +87,7 @@ class VisionGrader:
         data_url = _encode_image_to_data_url(img.path)
         prompt = VISION_PROMPT.format(tema=tema, versi_prompt=versi_prompt)
         try:
-            resp = self.client.chat.completions.create(
+            resp = self.client.chat_completion(
                 model=MODEL_VISION,
                 messages=[
                     {
@@ -93,7 +105,7 @@ class VisionGrader:
         except Exception as exc:  # noqa: BLE001
             log.warning("Vision call gagal untuk %s: %s", img.path.name, exc)
             return None
-        raw = (resp.choices[0].message.content or "").strip()
+        raw = normalize_message_content(resp.choices[0].message.content).strip()
         try:
             import json
             return json.loads(raw)

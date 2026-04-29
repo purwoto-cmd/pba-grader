@@ -29,15 +29,34 @@ from pathlib import Path
 from typing import Any
 
 import yaml
-from groq import Groq
 
+from .llm_client import ThrottledLLMClient, make_raw_client, normalize_message_content
 from .schema import Level, SoalAnswer, SoalScore
 
 log = logging.getLogger(__name__)
 
 # --- Model config ---
-MODEL_TEXT = os.getenv("PBA_MODEL_TEXT", "llama-3.3-70b-versatile")
-MODEL_REASONING = os.getenv("PBA_MODEL_REASONING", "openai/gpt-oss-120b")
+# Default model bergantung provider. Set via env var atau biarkan default Groq.
+_PROVIDER = os.getenv("PBA_PROVIDER", "groq").lower()
+_DEFAULTS_BY_PROVIDER = {
+    "groq": {
+        "text": "llama-3.3-70b-versatile",
+        "reasoning": "openai/gpt-oss-120b",
+    },
+    "swiftrouter": {
+        # Model ID SwiftRouter (verified dari swiftrouter.com/models, Apr 2026).
+        # gpt-oss-120b: reasoning, $0.04/$0.19 per 1M, 131K context — paling worth it.
+        "text": "gpt-oss-120b",
+        "reasoning": "gpt-oss-120b",
+    },
+    "openai": {
+        "text": "gpt-4o-mini",
+        "reasoning": "gpt-4o",
+    },
+}
+_DEFAULTS = _DEFAULTS_BY_PROVIDER.get(_PROVIDER, _DEFAULTS_BY_PROVIDER["groq"])
+MODEL_TEXT = os.getenv("PBA_MODEL_TEXT", _DEFAULTS["text"])
+MODEL_REASONING = os.getenv("PBA_MODEL_REASONING", _DEFAULTS["reasoning"])
 
 # Bobot minimal untuk pakai self-consistency (3x sampling)
 SELF_CONSISTENCY_MIN_BOBOT = 15
@@ -138,13 +157,21 @@ class Judge:
         rubric_path: Path,
         key_d_path: Path,
         key_e_path: Path,
-        client: Groq | None = None,
+        client: ThrottledLLMClient | Any | None = None,
+        *,
+        enable_self_consistency: bool = True,
     ):
         self.rubric = yaml.safe_load(Path(rubric_path).read_text())
         self.soal_by_id = {s["id"]: s for s in self.rubric["soal"]}
         self.key_d = Path(key_d_path).read_text()
         self.key_e = Path(key_e_path).read_text()
-        self.client = client or Groq()
+        if isinstance(client, ThrottledLLMClient):
+            self.client = client
+        elif client is not None:
+            self.client = ThrottledLLMClient(client=client)
+        else:
+            self.client = ThrottledLLMClient()
+        self.enable_self_consistency = enable_self_consistency
 
     # ---- Public API ----
 
@@ -189,7 +216,7 @@ class Judge:
                 )
 
         # --- Pilih model & sampling strategy ---
-        use_self_consistency = bobot >= SELF_CONSISTENCY_MIN_BOBOT
+        use_self_consistency = self.enable_self_consistency and bobot >= SELF_CONSISTENCY_MIN_BOBOT
         model = MODEL_REASONING if use_self_consistency else MODEL_TEXT
         n_samples = 3 if use_self_consistency else 1
 
@@ -323,7 +350,7 @@ class Judge:
         return ""
 
     def _call_judge(self, model: str, user_prompt: str, temperature: float = 0.0) -> str:
-        resp = self.client.chat.completions.create(
+        resp = self.client.chat_completion(
             model=model,
             messages=[
                 {"role": "system", "content": SYSTEM_PROMPT},
@@ -333,7 +360,7 @@ class Judge:
             max_completion_tokens=1200,
             response_format={"type": "json_object"},
         )
-        return resp.choices[0].message.content or ""
+        return normalize_message_content(resp.choices[0].message.content)
 
     @staticmethod
     def _parse_judge_output(raw: str) -> dict[str, Any] | None:

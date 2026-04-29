@@ -51,11 +51,35 @@ def grade(
     skip_plagiarism: bool = typer.Option(
         False, "--skip-plagiarism", help="Skip plagiarism check."
     ),
+    no_self_consistency: bool = typer.Option(
+        False,
+        "--no-self-consistency",
+        help="Skip 3x sampling untuk soal bobot >=15% (1 call per soal, lebih hemat kuota).",
+    ),
+    no_cache: bool = typer.Option(
+        False, "--no-cache", help="Abaikan cache (re-grade ulang semua, walaupun ada hasil sebelumnya)."
+    ),
+    throttle: float = typer.Option(
+        1.2,
+        "--throttle",
+        help="Jeda minimum (detik) antar call Groq API. Naikkan kalau sering 429.",
+    ),
+    max_retries: int = typer.Option(
+        8, "--max-retries", help="Maks retry saat dapat 429/error transient."
+    ),
 ):
     """Grade semua PDF di folder input/."""
     results = grade_batch(
-        input_dir, output_dir, rubric_path=rubric, key_d_path=key_d, key_e_path=key_e,
+        input_dir,
+        output_dir,
+        rubric_path=rubric,
+        key_d_path=key_d,
+        key_e_path=key_e,
         skip_vision=skip_vision,
+        enable_self_consistency=not no_self_consistency,
+        use_cache=not no_cache,
+        throttle_s=throttle,
+        max_retries=max_retries,
     )
 
     # Rekap Excel
