@@ -25,8 +25,10 @@ _PROVIDER_V = os.getenv("PBA_PROVIDER", "groq").lower()
 _VISION_DEFAULTS = {
     "groq": "meta-llama/llama-4-scout-17b-16e-instruct",
     "swiftrouter": "llama-4-scout",  # $0.08/$0.30 per 1M, 328K context, multimodal
-    # B.AI: claude-haiku-4.5 paling murah yang multimodal ($1.10/$5.50 per 1M).
-    "bai": "claude-haiku-4.5",
+    # B.AI: gemini-3-flash multimodal ($0.50/$3.00 per 1M, verified working tanpa
+    # deposit). Upgrade ke claude-haiku-4.5 ($1.10/$5.50) butuh top-up; override:
+    #   PBA_MODEL_VISION=claude-haiku-4.5
+    "bai": "gemini-3-flash",
     "openai": "gpt-4o-mini",
 }
 MODEL_VISION = os.getenv(

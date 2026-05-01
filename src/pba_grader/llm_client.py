@@ -149,10 +149,15 @@ def make_raw_client(provider: str | None = None):
                 )
 
         if not api_key:
-            primary_env = _PROVIDER_KEY_ENV.get(provider, "PBA_API_KEY")
+            primary_env = _PROVIDER_KEY_ENV.get(provider)
+            if primary_env:
+                hint_keys = f"{primary_env} atau PBA_API_KEY"
+            else:
+                # openai-compat: factory di atas baca PBA_API_KEY → OPENAI_API_KEY.
+                hint_keys = "PBA_API_KEY atau OPENAI_API_KEY"
             raise ValueError(
                 f"API key untuk provider '{provider}' tidak ditemukan di env. "
-                f"Set {primary_env} atau PBA_API_KEY."
+                f"Set {hint_keys}."
             )
 
         kwargs: dict[str, Any] = {"api_key": api_key}

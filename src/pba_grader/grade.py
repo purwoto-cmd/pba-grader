@@ -51,10 +51,12 @@ _DEFAULTS_BY_PROVIDER = {
     },
     "bai": {
         # Model ID B.AI (https://docs.b.ai/llmservice/models/).
-        # claude-sonnet-4.5: $3.30/$16.50 per 1M, multimodal, kuat untuk
-        # reasoning bilingual ID/AR. Override via PBA_MODEL_TEXT / PBA_MODEL_REASONING.
-        "text": "claude-sonnet-4.5",
-        "reasoning": "claude-sonnet-4.5",
+        # Default: gpt-5.4-mini ($0.75/$4.50 per 1M, multimodal). Verified end-to-end
+        # untuk rubric grading bilingual ID/AR — nggak butuh top-up tier premium.
+        # Upgrade ke claude-sonnet-4.5 / claude-haiku-4.5 butuh deposit; override:
+        #   PBA_MODEL_TEXT=claude-sonnet-4.5 PBA_MODEL_REASONING=claude-sonnet-4.5
+        "text": "gpt-5.4-mini",
+        "reasoning": "gpt-5.4-mini",
     },
     "openai": {
         "text": "gpt-4o-mini",

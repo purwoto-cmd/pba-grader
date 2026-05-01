@@ -63,15 +63,26 @@ Estimasi biaya batch 66 mahasiswa via SwiftRouter dengan default di atas: ≈ $0
 ```bash
 export PBA_PROVIDER=bai
 export BAI_API_KEY="sk-..."
-# Default model (Claude 4.5, kuat untuk rubric bilingual ID/AR):
-# export PBA_MODEL_TEXT="claude-sonnet-4.5"     # $3.30/$16.50 per 1M, multimodal
-# export PBA_MODEL_REASONING="claude-sonnet-4.5"
-# export PBA_MODEL_VISION="claude-haiku-4.5"    # $1.10/$5.50 per 1M, multimodal
+# Default model (verified end-to-end, nggak butuh deposit/top-up tier premium):
+# export PBA_MODEL_TEXT="gpt-5.4-mini"          # $0.75/$4.50 per 1M, multimodal
+# export PBA_MODEL_REASONING="gpt-5.4-mini"
+# export PBA_MODEL_VISION="gemini-3-flash"      # $0.50/$3.00 per 1M, multimodal
 ```
 
-Endpoint: `https://api.b.ai/v1`. Daftar model lain bisa dilihat di https://docs.b.ai/llmservice/models/ (DeepSeek V3.2/V4, Gemini 3 Flash, GPT-5.x, dsb.) — override via env var `PBA_MODEL_*` di atas.
+Endpoint: `https://api.b.ai/v1`. Auth: `Authorization: Bearer sk-...`. Daftar model lengkap di https://docs.b.ai/llmservice/models/.
 
-Estimasi biaya batch 66 mahasiswa via B.AI dengan default Claude di atas: ≈ $8–12 (full mode). Untuk lebih hemat, set `PBA_MODEL_TEXT=deepseek-v3.2` ($0.27/$0.42) + `PBA_MODEL_VISION=gemini-3-flash` ($0.50/$3.00) → ≈ $0.50–1.
+Estimasi biaya batch 66 mahasiswa via B.AI dengan default di atas: ≈ **$1.50–3** (full mode dengan self-consistency 3×).
+
+**Upgrade ke Claude (kualitas reasoning lebih tinggi, butuh deposit/top-up b.ai):**
+
+```bash
+export PBA_MODEL_TEXT="claude-sonnet-4.5"       # $3.30/$16.50 per 1M
+export PBA_MODEL_REASONING="claude-sonnet-4.5"
+export PBA_MODEL_VISION="claude-haiku-4.5"      # $1.10/$5.50 per 1M
+# Estimasi: ~$8–12 untuk batch 66 mahasiswa.
+```
+
+Catatan: model Anthropic di b.ai (Claude Opus/Sonnet/Haiku) terkunci di balik deposit minimum (HTTP 403 `access_denied: Deposit required to unlock premium models` kalau belum top-up). Model OpenAI/Google/MiniMax/GLM bisa langsung dipakai dengan saldo standar.
 
 ### Opsi 4 — Endpoint OpenAI-compatible custom
 
