@@ -58,7 +58,33 @@ export SWIFTROUTER_API_KEY="sk-..."
 
 Estimasi biaya batch 66 mahasiswa via SwiftRouter dengan default di atas: ≈ $0.40 (full mode) atau ≈ $0.10 (mode hemat).
 
-### Opsi 3 — Endpoint OpenAI-compatible custom
+### Opsi 3 — B.AI (OpenAI-compatible, alternatif SwiftRouter)
+
+```bash
+export PBA_PROVIDER=bai
+export BAI_API_KEY="sk-..."
+# Default model (verified end-to-end, nggak butuh deposit/top-up tier premium):
+# export PBA_MODEL_TEXT="gpt-5.4-mini"          # $0.75/$4.50 per 1M, multimodal
+# export PBA_MODEL_REASONING="gpt-5.4-mini"
+# export PBA_MODEL_VISION="gemini-3-flash"      # $0.50/$3.00 per 1M, multimodal
+```
+
+Endpoint: `https://api.b.ai/v1`. Auth: `Authorization: Bearer sk-...`. Daftar model lengkap di https://docs.b.ai/llmservice/models/.
+
+Estimasi biaya batch 66 mahasiswa via B.AI dengan default di atas: ≈ **$1.50–3** (full mode dengan self-consistency 3×).
+
+**Upgrade ke Claude (kualitas reasoning lebih tinggi, butuh deposit/top-up b.ai):**
+
+```bash
+export PBA_MODEL_TEXT="claude-sonnet-4.5"       # $3.30/$16.50 per 1M
+export PBA_MODEL_REASONING="claude-sonnet-4.5"
+export PBA_MODEL_VISION="claude-haiku-4.5"      # $1.10/$5.50 per 1M
+# Estimasi: ~$8–12 untuk batch 66 mahasiswa.
+```
+
+Catatan: model Anthropic di b.ai (Claude Opus/Sonnet/Haiku) terkunci di balik deposit minimum (HTTP 403 `access_denied: Deposit required to unlock premium models` kalau belum top-up). Model OpenAI/Google/MiniMax/GLM bisa langsung dipakai dengan saldo standar.
+
+### Opsi 4 — Endpoint OpenAI-compatible custom
 
 ```bash
 export PBA_PROVIDER=openai-compat
@@ -103,7 +129,7 @@ pba-grader/
 │   ├── detect.py        — identitas (nama, NIM) + deteksi versi
 │   ├── segment.py       — split jawaban per soal
 │   ├── grade.py         — LLM-as-judge (provider-agnostic)
-│   ├── llm_client.py    — provider routing (Groq/SwiftRouter/OpenAI) + throttle+retry
+│   ├── llm_client.py    — provider routing (Groq/SwiftRouter/B.AI/OpenAI) + throttle+retry
 │   ├── vision.py        — grade screenshot 2.2/2.3
 │   ├── plagiarism.py    — similarity antar mahasiswa
 │   ├── report.py        — Excel rekap + PDF feedback

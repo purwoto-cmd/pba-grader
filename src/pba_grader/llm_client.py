@@ -5,11 +5,13 @@ Mendukung multiple provider via env var `PBA_PROVIDER`:
   groq         — Groq Cloud (default).            Auth: GROQ_API_KEY
   swiftrouter  — SwiftRouter (OpenAI-compatible). Auth: SWIFTROUTER_API_KEY
                  base_url: https://api.swiftrouter.com/v1
+  bai          — B.AI (OpenAI-compatible).        Auth: BAI_API_KEY
+                 base_url: https://api.b.ai/v1
   openai       — OpenAI langsung.                  Auth: OPENAI_API_KEY
   openai-compat — Endpoint OpenAI-compatible custom.
                  Wajib set: PBA_BASE_URL, PBA_API_KEY
 
-Override base_url manual: set `PBA_BASE_URL` (akan di-pakai untuk swiftrouter/openai-compat).
+Override base_url manual: set `PBA_BASE_URL` (akan di-pakai untuk swiftrouter/bai/openai-compat).
 
 Wrapper ini:
 - Memberi jeda minimum antar call (throttle).
@@ -103,7 +105,15 @@ def _parse_retry_after(exc: Exception) -> float | None:
 
 DEFAULT_BASE_URLS = {
     "swiftrouter": "https://api.swiftrouter.com/v1",
+    "bai": "https://api.b.ai/v1",
     "openai": "https://api.openai.com/v1",
+}
+
+# Mapping provider → nama env var API key utama (fallback ke PBA_API_KEY).
+_PROVIDER_KEY_ENV = {
+    "swiftrouter": "SWIFTROUTER_API_KEY",
+    "bai": "BAI_API_KEY",
+    "openai": "OPENAI_API_KEY",
 }
 
 
@@ -116,16 +126,17 @@ def make_raw_client(provider: str | None = None):
 
         return Groq()
 
-    if provider in ("swiftrouter", "openai-compat", "openai"):
+    if provider in ("swiftrouter", "bai", "openai-compat", "openai"):
         from openai import OpenAI
 
-        if provider == "swiftrouter":
+        if provider in ("swiftrouter", "bai"):
+            primary_env = _PROVIDER_KEY_ENV[provider]
             api_key = (
-                os.getenv("SWIFTROUTER_API_KEY")
+                os.getenv(primary_env)
                 or os.getenv("PBA_API_KEY")
                 or os.getenv("OPENAI_API_KEY")
             )
-            base_url = os.getenv("PBA_BASE_URL") or DEFAULT_BASE_URLS["swiftrouter"]
+            base_url = os.getenv("PBA_BASE_URL") or DEFAULT_BASE_URLS[provider]
         elif provider == "openai":
             api_key = os.getenv("OPENAI_API_KEY") or os.getenv("PBA_API_KEY")
             base_url = os.getenv("PBA_BASE_URL")  # boleh None → default OpenAI
@@ -138,9 +149,15 @@ def make_raw_client(provider: str | None = None):
                 )
 
         if not api_key:
+            primary_env = _PROVIDER_KEY_ENV.get(provider)
+            if primary_env:
+                hint_keys = f"{primary_env} atau PBA_API_KEY"
+            else:
+                # openai-compat: factory di atas baca PBA_API_KEY → OPENAI_API_KEY.
+                hint_keys = "PBA_API_KEY atau OPENAI_API_KEY"
             raise ValueError(
                 f"API key untuk provider '{provider}' tidak ditemukan di env. "
-                "Set SWIFTROUTER_API_KEY / OPENAI_API_KEY / PBA_API_KEY."
+                f"Set {hint_keys}."
             )
 
         kwargs: dict[str, Any] = {"api_key": api_key}
@@ -150,7 +167,7 @@ def make_raw_client(provider: str | None = None):
 
     raise ValueError(
         f"PBA_PROVIDER='{provider}' tidak dikenal. "
-        "Pakai salah satu: groq, swiftrouter, openai, openai-compat."
+        "Pakai salah satu: groq, swiftrouter, bai, openai, openai-compat."
     )
 
 
