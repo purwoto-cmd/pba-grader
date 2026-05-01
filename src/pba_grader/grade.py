@@ -49,6 +49,13 @@ _DEFAULTS_BY_PROVIDER = {
         "text": "gpt-oss-120b",
         "reasoning": "gpt-oss-120b",
     },
+    "bai": {
+        # Model ID B.AI (https://docs.b.ai/llmservice/models/).
+        # claude-sonnet-4.5: $3.30/$16.50 per 1M, multimodal, kuat untuk
+        # reasoning bilingual ID/AR. Override via PBA_MODEL_TEXT / PBA_MODEL_REASONING.
+        "text": "claude-sonnet-4.5",
+        "reasoning": "claude-sonnet-4.5",
+    },
     "openai": {
         "text": "gpt-4o-mini",
         "reasoning": "gpt-4o",

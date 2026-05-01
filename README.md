@@ -58,7 +58,22 @@ export SWIFTROUTER_API_KEY="sk-..."
 
 Estimasi biaya batch 66 mahasiswa via SwiftRouter dengan default di atas: ≈ $0.40 (full mode) atau ≈ $0.10 (mode hemat).
 
-### Opsi 3 — Endpoint OpenAI-compatible custom
+### Opsi 3 — B.AI (OpenAI-compatible, alternatif SwiftRouter)
+
+```bash
+export PBA_PROVIDER=bai
+export BAI_API_KEY="sk-..."
+# Default model (Claude 4.5, kuat untuk rubric bilingual ID/AR):
+# export PBA_MODEL_TEXT="claude-sonnet-4.5"     # $3.30/$16.50 per 1M, multimodal
+# export PBA_MODEL_REASONING="claude-sonnet-4.5"
+# export PBA_MODEL_VISION="claude-haiku-4.5"    # $1.10/$5.50 per 1M, multimodal
+```
+
+Endpoint: `https://api.b.ai/v1`. Daftar model lain bisa dilihat di https://docs.b.ai/llmservice/models/ (DeepSeek V3.2/V4, Gemini 3 Flash, GPT-5.x, dsb.) — override via env var `PBA_MODEL_*` di atas.
+
+Estimasi biaya batch 66 mahasiswa via B.AI dengan default Claude di atas: ≈ $8–12 (full mode). Untuk lebih hemat, set `PBA_MODEL_TEXT=deepseek-v3.2` ($0.27/$0.42) + `PBA_MODEL_VISION=gemini-3-flash` ($0.50/$3.00) → ≈ $0.50–1.
+
+### Opsi 4 — Endpoint OpenAI-compatible custom
 
 ```bash
 export PBA_PROVIDER=openai-compat
@@ -103,7 +118,7 @@ pba-grader/
 │   ├── detect.py        — identitas (nama, NIM) + deteksi versi
 │   ├── segment.py       — split jawaban per soal
 │   ├── grade.py         — LLM-as-judge (provider-agnostic)
-│   ├── llm_client.py    — provider routing (Groq/SwiftRouter/OpenAI) + throttle+retry
+│   ├── llm_client.py    — provider routing (Groq/SwiftRouter/B.AI/OpenAI) + throttle+retry
 │   ├── vision.py        — grade screenshot 2.2/2.3
 │   ├── plagiarism.py    — similarity antar mahasiswa
 │   ├── report.py        — Excel rekap + PDF feedback
